@@ -1,0 +1,3 @@
+# Optional production dependencies. The development vertical slice uses Python stdlib.
+psycopg[binary]>=3.2
+pgvector>=0.3

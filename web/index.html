@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>经验结构化实验室</title>
+  <style>
+    :root{--bg:#f3f0e8;--ink:#17211d;--muted:#66716b;--card:#fffdf7;--line:#d7d2c5;--accent:#c94e32;--soft:#e9e3d5}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,"Microsoft YaHei",sans-serif}
+    main{max-width:1120px;margin:auto;padding:42px 24px 64px}.eyebrow{letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:700;font-size:12px}
+    h1{font:700 42px/1.15 Georgia,"Noto Serif SC",serif;margin:8px 0 12px;max-width:760px}p{color:var(--muted);max-width:760px}
+    .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin-top:28px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 12px 35px #756b5520}
+    label{display:block;font-weight:700;margin-bottom:8px}textarea{width:100%;min-height:210px;resize:vertical;border:1px solid var(--line);border-radius:12px;padding:15px;background:#fff;color:var(--ink);font:inherit}
+    .row{display:flex;gap:10px;align-items:end;margin-top:14px}.field{flex:1}.field input{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff}
+    button{border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:white;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:wait}
+    .tabs{display:flex;gap:8px;margin-bottom:12px}.tabs button{background:var(--soft);color:var(--ink);padding:7px 12px}.tabs button.active{background:var(--ink);color:white}
+    pre{margin:0;white-space:pre-wrap;overflow:auto;max-height:580px;background:#17211d;color:#eaf1ec;border-radius:12px;padding:16px;font:13px/1.6 Consolas,monospace}.markdown{white-space:pre-wrap;max-height:580px;overflow:auto}
+    .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:13px}.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}.explicit{background:#3f7960}.inferred{background:#d7972c}
+    .status{min-height:24px;margin-top:10px;color:var(--accent)}
+    @media(max-width:780px){h1{font-size:32px}.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body><main>
+  <div class="eyebrow">Experience Standard / V1</div>
+  <h1>先把一句经验，拆成可以理解和复用的结构</h1>
+  <p>本阶段只处理结构化，不做入库。系统会区分原文明示内容与合理推导内容，并主动列出仍然缺失的信息。</p>
+  <div class="grid">
+    <section class="card">
+      <label for="input">人类自然语言经验</label>
+      <textarea id="input">仿真中本构的选择要根据材料、损伤预期来决定，断裂和拉伸用的本构是不一样的。</textarea>
+      <div class="row"><div class="field"><label for="key">本地 API Key</label><input id="key" value="dev-key" type="password"></div><button id="run" onclick="run()">开始拆解</button></div>
+      <div class="status" id="status"></div>
+      <div class="legend"><span><i class="dot explicit"></i>explicit：原文明确表达</span><span><i class="dot inferred"></i>inferred：为可执行性做的推导</span></div>
+    </section>
+    <section class="card">
+      <div class="tabs"><button class="active" onclick="show('readable',this)">可读经验卡</button><button onclick="show('json',this)">标准 JSON</button></div>
+      <div id="readable" class="markdown">等待拆解……</div><pre id="json" hidden>等待拆解……</pre>
+    </section>
+  </div>
+</main>
+<script>
+async function run(){const btn=document.querySelector('#run'),status=document.querySelector('#status');btn.disabled=true;status.textContent='正在调用模型并校验结构…';try{const r=await fetch('/v1/structure',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':document.querySelector('#key').value},body:JSON.stringify({text:document.querySelector('#input').value})});const data=await r.json();if(!r.ok||!data.ok)throw new Error(data.error+(data.validation_errors?'：'+data.validation_errors.join(', '):''));document.querySelector('#readable').textContent=data.markdown;document.querySelector('#json').textContent=JSON.stringify(data.record,null,2);status.textContent='结构化完成 · '+data.model}catch(e){status.textContent='失败：'+e.message}finally{btn.disabled=false}}
+function show(id,button){document.querySelector('#readable').hidden=id!=='readable';document.querySelector('#json').hidden=id!=='json';document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));button.classList.add('active')}
+</script></body></html>
